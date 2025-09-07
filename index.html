@@ -25,7 +25,9 @@
         body {
             background-color: var(--dark-bg);
             color: var(--text);
-            min-height: 100vh;
+            height: 100vh;
+            width: 100vw;
+            overflow: hidden;
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -37,20 +39,27 @@
         }
         
         .container {
-            max-width: 500px;
             width: 100%;
+            max-width: 800px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            flex: 1;
+            padding: 10px;
         }
         
         .header {
             text-align: center;
-            margin-bottom: 30px;
+            margin-bottom: 2vh;
             position: relative;
+            width: 100%;
         }
         
         h1 {
-            font-size: 2.8rem;
+            font-size: 5vmin;
             text-shadow: 0 0 15px rgba(255, 255, 255, 0.2);
-            margin-bottom: 10px;
+            margin-bottom: 1vmin;
             background: linear-gradient(45deg, var(--accent-x), var(--accent-o));
             -webkit-background-clip: text;
             background-clip: text;
@@ -60,23 +69,25 @@
         
         .subtitle {
             color: #aaa;
-            font-size: 1.1rem;
+            font-size: 2vmin;
         }
         
         .score-board {
             display: flex;
             justify-content: space-around;
-            margin-bottom: 30px;
+            margin-bottom: 2vh;
             background: var(--panel-bg);
             border-radius: 15px;
-            padding: 20px;
+            padding: 1.5vmin;
             box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
             border: 1px solid rgba(255, 255, 255, 0.05);
+            width: 100%;
+            max-width: 500px;
         }
         
         .score-item {
             text-align: center;
-            padding: 10px;
+            padding: 1vmin;
             flex: 1;
             position: relative;
         }
@@ -93,13 +104,13 @@
         }
         
         .score-title {
-            font-size: 1rem;
-            margin-bottom: 8px;
+            font-size: 1.8vmin;
+            margin-bottom: 1vmin;
             color: #bbb;
         }
         
         .score-value {
-            font-size: 2.2rem;
+            font-size: 4vmin;
             font-weight: bold;
             display: block;
         }
@@ -110,24 +121,26 @@
         
         .game-info {
             text-align: center;
-            margin-bottom: 25px;
-            font-size: 1.3rem;
-            min-height: 40px;
+            margin-bottom: 2vh;
+            font-size: 2.5vmin;
+            min-height: 4vh;
             display: flex;
             align-items: center;
             justify-content: center;
             background: var(--panel-bg);
-            padding: 15px;
+            padding: 1.5vmin;
             border-radius: 12px;
             box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
             border: 1px solid rgba(255, 255, 255, 0.05);
+            width: 100%;
+            max-width: 500px;
         }
         
         .current-player {
             font-weight: bold;
             text-shadow: 0 0 10px currentColor;
             margin-left: 10px;
-            font-size: 1.4rem;
+            font-size: 3vmin;
         }
         
         .current-player.x { color: var(--accent-x); }
@@ -136,18 +149,20 @@
         .game-board {
             display: grid;
             grid-template-columns: repeat(3, 1fr);
-            gap: 12px;
-            margin-bottom: 30px;
+            gap: 1.5vmin;
+            margin-bottom: 2vh;
+            width: 100%;
+            max-width: 500px;
+            aspect-ratio: 1 / 1;
         }
         
         .cell {
-            aspect-ratio: 1;
             background-color: var(--dark-cell);
             border-radius: 12px;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 3.5rem;
+            font-size: 10vmin;
             font-weight: bold;
             cursor: pointer;
             transition: all 0.3s ease;
@@ -223,16 +238,17 @@
         .controls {
             display: flex;
             justify-content: center;
-            margin-bottom: 20px;
+            margin-bottom: 2vh;
+            width: 100%;
         }
         
         .btn {
-            padding: 14px 32px;
+            padding: 1.5vmin 4vmin;
             background: linear-gradient(45deg, var(--accent-x), var(--accent-o));
             color: white;
             border: none;
             border-radius: 50px;
-            font-size: 1.1rem;
+            font-size: 2vmin;
             font-weight: bold;
             cursor: pointer;
             transition: all 0.3s ease;
@@ -265,14 +281,16 @@
         
         .message {
             text-align: center;
-            margin-top: 20px;
-            font-size: 1.4rem;
-            min-height: 40px;
-            padding: 15px;
+            margin-top: 1vh;
+            font-size: 2.5vmin;
+            min-height: 4vh;
+            padding: 1.5vmin;
             border-radius: 12px;
             background: var(--panel-bg);
             box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
             border: 1px solid rgba(255, 255, 255, 0.05);
+            width: 100%;
+            max-width: 500px;
         }
         
         .winner-x { 
@@ -290,17 +308,40 @@
         }
         
         .footer {
-            margin-top: 30px;
+            margin-top: 2vh;
             text-align: center;
             color: #666;
-            font-size: 0.9rem;
+            font-size: 1.8vmin;
+            padding: 1vmin;
         }
         
-        @media (max-width: 500px) {
-            h1 { font-size: 2.2rem; }
-            .score-value { font-size: 1.8rem; }
-            .cell { font-size: 2.8rem; }
-            .game-info, .message { font-size: 1.1rem; }
+        /* Адаптивность для очень маленьких экранов */
+        @media (max-height: 500px) {
+            .container {
+                transform: scale(0.9);
+            }
+        }
+        
+        @media (max-height: 400px) {
+            .container {
+                transform: scale(0.8);
+            }
+        }
+        
+        /* Портретная ориентация на мобильных */
+        @media (max-width: 768px) and (orientation: portrait) {
+            .container {
+                justify-content: flex-start;
+                padding-top: 5vh;
+            }
+            
+            .game-board {
+                max-width: 90vw;
+            }
+            
+            .score-board, .game-info, .message {
+                max-width: 90vw;
+            }
         }
     </style>
 </head>
@@ -392,12 +433,12 @@
             function makeMove(cellIndex) {
                 // Отправка хода на сервер
                 fetch('game.php?action=move', {
-    method: 'POST',
-    headers: {
-        'Content-Type': 'application/json'
-    },
-    body: JSON.stringify({ cell: cellIndex })
-})
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ cell: cellIndex })
+                })
                     .then(response => response.json())
                     .then(data => {
                         if (data.success) {
