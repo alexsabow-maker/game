@@ -1,0 +1,515 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Крестики-нолики</title>
+    <style>
+        :root {
+            --dark-bg: #121212;
+            --dark-cell: #1e1e1e;
+            --accent-x: #ff5252;
+            --accent-o: #448aff;
+            --text: #e0e0e0;
+            --border: #333;
+            --panel-bg: rgba(40, 40, 40, 0.95);
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background-color: var(--dark-bg);
+            color: var(--text);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            background-image: 
+                radial-gradient(circle at 10% 20%, rgba(255, 82, 82, 0.1) 0%, transparent 20%),
+                radial-gradient(circle at 90% 80%, rgba(68, 138, 255, 0.1) 0%, transparent 20%);
+        }
+        
+        .container {
+            max-width: 500px;
+            width: 100%;
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            position: relative;
+        }
+        
+        h1 {
+            font-size: 2.8rem;
+            text-shadow: 0 0 15px rgba(255, 255, 255, 0.2);
+            margin-bottom: 10px;
+            background: linear-gradient(45deg, var(--accent-x), var(--accent-o));
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            letter-spacing: 2px;
+        }
+        
+        .subtitle {
+            color: #aaa;
+            font-size: 1.1rem;
+        }
+        
+        .score-board {
+            display: flex;
+            justify-content: space-around;
+            margin-bottom: 30px;
+            background: var(--panel-bg);
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+        
+        .score-item {
+            text-align: center;
+            padding: 10px;
+            flex: 1;
+            position: relative;
+        }
+        
+        .score-item:not(:last-child)::after {
+            content: '';
+            position: absolute;
+            right: 0;
+            top: 50%;
+            transform: translateY(-50%);
+            height: 60%;
+            width: 1px;
+            background: linear-gradient(to bottom, transparent, var(--border), transparent);
+        }
+        
+        .score-title {
+            font-size: 1rem;
+            margin-bottom: 8px;
+            color: #bbb;
+        }
+        
+        .score-value {
+            font-size: 2.2rem;
+            font-weight: bold;
+            display: block;
+        }
+        
+        .score-x .score-value { color: var(--accent-x); }
+        .score-o .score-value { color: var(--accent-o); }
+        .score-draw .score-value { color: var(--text); }
+        
+        .game-info {
+            text-align: center;
+            margin-bottom: 25px;
+            font-size: 1.3rem;
+            min-height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: var(--panel-bg);
+            padding: 15px;
+            border-radius: 12px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+        
+        .current-player {
+            font-weight: bold;
+            text-shadow: 0 0 10px currentColor;
+            margin-left: 10px;
+            font-size: 1.4rem;
+        }
+        
+        .current-player.x { color: var(--accent-x); }
+        .current-player.o { color: var(--accent-o); }
+        
+        .game-board {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+            margin-bottom: 30px;
+        }
+        
+        .cell {
+            aspect-ratio: 1;
+            background-color: var(--dark-cell);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 3.5rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.25);
+            position: relative;
+            overflow: hidden;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+        
+        .cell::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: linear-gradient(to bottom right, rgba(255, 255, 255, 0.1), transparent);
+            transform: rotate(45deg);
+            z-index: 1;
+        }
+        
+        .cell:hover:not(.disabled) {
+            transform: translateY(-5px) scale(1.03);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3);
+        }
+        
+        .cell.x { 
+            color: var(--accent-x);
+            text-shadow: 0 0 15px rgba(255, 82, 82, 0.5);
+        }
+        
+        .cell.o { 
+            color: var(--accent-o);
+            text-shadow: 0 0 15px rgba(68, 138, 255, 0.5);
+        }
+        
+        .disabled {
+            cursor: not-allowed;
+        }
+        
+        .winning-cell {
+            animation: pulse 2s infinite;
+            position: relative;
+        }
+        
+        .winning-cell::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            border-radius: 12px;
+            padding: 2px;
+            background: linear-gradient(45deg, var(--accent-x), var(--accent-o));
+            -webkit-mask: 
+                linear-gradient(#fff 0 0) content-box, 
+                linear-gradient(#fff 0 0);
+            -webkit-mask-composite: xor;
+            mask-composite: exclude;
+            animation: borderPulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+        
+        @keyframes borderPulse {
+            0% { opacity: 0.7; }
+            50% { opacity: 1; }
+            100% { opacity: 0.7; }
+        }
+        
+        .controls {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 20px;
+        }
+        
+        .btn {
+            padding: 14px 32px;
+            background: linear-gradient(45deg, var(--accent-x), var(--accent-o));
+            color: white;
+            border: none;
+            border-radius: 50px;
+            font-size: 1.1rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.25);
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            transition: 0.5s;
+        }
+        
+        .btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3);
+        }
+        
+        .btn:hover::before {
+            left: 100%;
+        }
+        
+        .message {
+            text-align: center;
+            margin-top: 20px;
+            font-size: 1.4rem;
+            min-height: 40px;
+            padding: 15px;
+            border-radius: 12px;
+            background: var(--panel-bg);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+        
+        .winner-x { 
+            color: var(--accent-x);
+            text-shadow: 0 0 10px rgba(255, 82, 82, 0.5);
+        }
+        
+        .winner-o { 
+            color: var(--accent-o);
+            text-shadow: 0 0 10px rgba(68, 138, 255, 0.5);
+        }
+        
+        .draw { 
+            color: #bbb;
+        }
+        
+        .footer {
+            margin-top: 30px;
+            text-align: center;
+            color: #666;
+            font-size: 0.9rem;
+        }
+        
+        @media (max-width: 500px) {
+            h1 { font-size: 2.2rem; }
+            .score-value { font-size: 1.8rem; }
+            .cell { font-size: 2.8rem; }
+            .game-info, .message { font-size: 1.1rem; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Крестики-нолики</h1>
+            <div class="subtitle">Классическая игра с современным дизайном</div>
+        </div>
+        
+        <div class="score-board">
+            <div class="score-item score-x">
+                <div class="score-title">Крестики</div>
+                <span class="score-value" id="score-x">0</span>
+            </div>
+            <div class="score-item score-draw">
+                <div class="score-title">Ничьи</div>
+                <span class="score-value" id="score-draw">0</span>
+            </div>
+            <div class="score-item score-o">
+                <div class="score-title">Нолики</div>
+                <span class="score-value" id="score-o">0</span>
+            </div>
+        </div>
+        
+        <div class="game-info">
+            <span>Сейчас ходит: </span>
+            <span class="current-player x" id="current-player">Крестики</span>
+        </div>
+        
+        <div class="game-board" id="game-board">
+            <div class="cell" data-cell="0"></div>
+            <div class="cell" data-cell="1"></div>
+            <div class="cell" data-cell="2"></div>
+            <div class="cell" data-cell="3"></div>
+            <div class="cell" data-cell="4"></div>
+            <div class="cell" data-cell="5"></div>
+            <div class="cell" data-cell="6"></div>
+            <div class="cell" data-cell="7"></div>
+            <div class="cell" data-cell="8"></div>
+        </div>
+        
+        <div class="controls">
+            <button class="btn" id="reset-btn">Новая игра</button>
+        </div>
+        
+        <div class="message" id="message"></div>
+        
+        <div class="footer">
+            Игра создана с использованием PHP и JavaScript
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const gameBoard = document.getElementById('game-board');
+            const currentPlayerEl = document.getElementById('current-player');
+            const messageEl = document.getElementById('message');
+            const resetBtn = document.getElementById('reset-btn');
+            const scoreX = document.getElementById('score-x');
+            const scoreO = document.getElementById('score-o');
+            const scoreDraw = document.getElementById('score-draw');
+            
+            let currentPlayer = 'X';
+            let gameOver = false;
+            let board = ['', '', '', '', '', '', '', '', ''];
+            
+            // Загрузка состояния игры с сервера
+            loadGameState();
+            
+            // Обработка кликов по ячейкам
+            gameBoard.addEventListener('click', function(e) {
+                const cell = e.target.closest('.cell');
+                if (!cell || gameOver) return;
+                
+                const cellIndex = parseInt(cell.getAttribute('data-cell'));
+                
+                if (board[cellIndex] === '') {
+                    makeMove(cellIndex);
+                }
+            });
+            
+            // Кнопка сброса игры
+            resetBtn.addEventListener('click', function() {
+                resetGame();
+            });
+            
+            // Функция выполнения хода
+            function makeMove(cellIndex) {
+                // Отправка хода на сервер
+                fetch(`game.php?action=move&cell=${cellIndex}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            board = data.board;
+                            currentPlayer = data.currentPlayer;
+                            gameOver = data.gameOver;
+                            
+                            updateBoard();
+                            updateScores(data.score);
+                            
+                            if (gameOver) {
+                                if (data.winner === 'draw') {
+                                    showMessage('Ничья!', 'draw');
+                                } else {
+                                    showMessage(`Победили ${data.winner === 'X' ? 'Крестики' : 'Нолики'}!`, 
+                                               data.winner === 'X' ? 'winner-x' : 'winner-o');
+                                }
+                            } else {
+                                updateCurrentPlayer();
+                            }
+                        } else {
+                            alert('Ошибка: ' + data.message);
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Ошибка:', error);
+                    });
+            }
+            
+            // Функция загрузки состояния игры
+            function loadGameState() {
+                fetch('game.php?action=load')
+                    .then(response => response.json())
+                    .then(data => {
+                        board = data.board;
+                        currentPlayer = data.currentPlayer;
+                        gameOver = data.gameOver;
+                        
+                        updateBoard();
+                        updateScores(data.score);
+                        updateCurrentPlayer();
+                        
+                        if (gameOver) {
+                            if (data.winner === 'draw') {
+                                showMessage('Ничья!', 'draw');
+                            } else if (data.winner) {
+                                showMessage(`Победили ${data.winner === 'X' ? 'Крестики' : 'Нолики'}!`, 
+                                           data.winner === 'X' ? 'winner-x' : 'winner-o');
+                            }
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Ошибка:', error);
+                    });
+            }
+            
+            // Функция сброса игры
+            function resetGame() {
+                fetch('game.php?action=reset')
+                    .then(response => response.json())
+                    .then(data => {
+                        board = data.board;
+                        currentPlayer = data.currentPlayer;
+                        gameOver = data.gameOver;
+                        
+                        updateBoard();
+                        updateScores(data.score);
+                        updateCurrentPlayer();
+                        clearMessage();
+                    })
+                    .catch(error => {
+                        console.error('Ошибка:', error);
+                    });
+            }
+            
+            // Обновление отображения игрового поля
+            function updateBoard() {
+                const cells = document.querySelectorAll('.cell');
+                cells.forEach((cell, index) => {
+                    cell.textContent = board[index];
+                    cell.className = 'cell';
+                    if (board[index] === 'X') {
+                        cell.classList.add('x');
+                    } else if (board[index] === 'O') {
+                        cell.classList.add('o');
+                    }
+                    
+                    if (gameOver && board[index] !== '') {
+                        cell.classList.add('disabled');
+                    }
+                });
+            }
+            
+            // Обновление счета
+            function updateScores(score) {
+                scoreX.textContent = score.X;
+                scoreO.textContent = score.O;
+                scoreDraw.textContent = score.draw;
+            }
+            
+            // Обновление отображения текущего игрока
+            function updateCurrentPlayer() {
+                currentPlayerEl.textContent = currentPlayer === 'X' ? 'Крестики' : 'Нолики';
+                currentPlayerEl.className = 'current-player ' + (currentPlayer === 'X' ? 'x' : 'o');
+            }
+            
+            // Показать сообщение
+            function showMessage(text, className) {
+                messageEl.textContent = text;
+                messageEl.className = 'message ' + className;
+            }
+            
+            // Очистить сообщение
+            function clearMessage() {
+                messageEl.textContent = '';
+                messageEl.className = 'message';
+            }
+        });
+    </script>
+</body>
+</html>
