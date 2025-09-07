@@ -391,7 +391,13 @@
             // Функция выполнения хода
             function makeMove(cellIndex) {
                 // Отправка хода на сервер
-                fetch(`game.php?action=move&cell=${cellIndex}`)
+                fetch('game.php?action=move', {
+    method: 'POST',
+    headers: {
+        'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({ cell: cellIndex })
+})
                     .then(response => response.json())
                     .then(data => {
                         if (data.success) {
