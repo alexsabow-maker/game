@@ -1,6 +1,11 @@
 <?php
 session_start();
 
+header('Content-Type: application/json');
+header('Access-Control-Allow-Origin: *');
+header('Access-Control-Allow-Methods: GET, POST');
+header('Access-Control-Allow-Headers: Content-Type');
+
 // Инициализация игры
 function initGame() {
     $_SESSION['board'] = array_fill(0, 9, '');
@@ -33,7 +38,8 @@ function checkWin($board, $player) {
 }
 
 // Обработка действий
-$action = $_GET['action'] ?? '';
+$input = json_decode(file_get_contents('php://input'), true);
+$action = $_GET['action'] ?? ($input['action'] ?? '');
 
 if ($action === 'reset') {
     initGame();
@@ -65,13 +71,18 @@ if ($action === 'reset') {
         initGame();
     }
     
-    $cell = (int)$_GET['cell'];
+    $cell = (int)($input['cell'] ?? -1);
     $response = [];
     
     if ($_SESSION['gameOver']) {
         $response = [
             'success' => false,
             'message' => 'Игра уже завершена'
+        ];
+    } elseif ($cell < 0 || $cell > 8) {
+        $response = [
+            'success' => false,
+            'message' => 'Неверный номер ячейки'
         ];
     } elseif ($_SESSION['board'][$cell] !== '') {
         $response = [
@@ -109,11 +120,10 @@ if ($action === 'reset') {
     }
     
     echo json_encode($response);
-}
-
-// Очистка сессии (для отладки)
-if (isset($_GET['clear'])) {
-    session_destroy();
-    echo "Сессия очищена";
+} else {
+    echo json_encode([
+        'success' => false,
+        'message' => 'Неизвестное действие'
+    ]);
 }
 ?>
